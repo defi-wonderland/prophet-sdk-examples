@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@defi-wonderland/prophet-modules-abi": "0.0.0-172c4052",
-    "@defi-wonderland/prophet-sdk": "canary",
+    "@defi-wonderland/prophet-sdk": "0.0.0-5a2fe278",
     "@openzeppelin/contracts": "4.7.3",
     "bignumber.js": "9.1.0",
     "ethers-v6": "npm:ethers@6.7.0",

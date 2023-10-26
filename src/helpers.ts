@@ -1,11 +1,7 @@
-import { faker } from '@faker-js/faker';
-import { MerkleTree } from 'merkletreejs';
-import { IMerkleNode } from './types';
 import { Contract, ContractRunner, ethers } from 'ethers-v6';
 import { ethers as ethersHardhat } from 'hardhat';
 import { IERC20_ABI, address } from './constants';
 import IAccountingExtension from '@defi-wonderland/prophet-modules-abi/abi/IAccountingExtension.json';
-import { getNetworkName } from './utils';
 
 export const getSigner = async () => {
   const [signer] = await ethersHardhat.getSigners();
@@ -18,59 +14,12 @@ export const getDecodeRequestDataFunctionReturnTypes = (abi: any[]) => {
   return decodeRequestDataFunction;
 };
 
-export const getRandomDeadline = () => {
-  return faker.number.int({ min: getCurrentEpochInSeconds(), max: epochInOneYear() });
+export const generateDeadline = () => {
+  return getCurrentEpochInSeconds() + 60;
 };
-
-export const getRandomTimeUntilDeadline = () => {
-  return getRandomDeadline() - getCurrentEpochInSeconds();
-};
-
 export const getCurrentEpochInSeconds = () => {
   return Math.floor(Date.now() / 1000);
 };
-
-const epochInOneYear = () => {
-  const currentDate: Date = new Date();
-  currentDate.setFullYear(currentDate.getFullYear() + 1);
-  return Math.floor(currentDate.getTime() / 1000);
-};
-
-export const generateRandomMerkleTree = (leavesAmount: number) => {
-  const SHA256 = require('crypto-js/sha256');
-  const unHashedArray = Array.from({ length: leavesAmount }, () => faker.string.alpha({ length: 1 }));
-  const leaves = unHashedArray.map((x) => SHA256(x));
-  const tree = new MerkleTree(leaves, SHA256);
-
-  const treeCount = 1;
-  const treeBranches = convertToBytes32(tree.getProofs() as IMerkleNode[][]);
-
-  // sending only the first merkle proof array
-  const treeData = ethers.AbiCoder.defaultAbiCoder().encode(['bytes32[]', 'uint256'], [treeBranches[0], treeCount]);
-  return {
-    tree,
-    treeData,
-  };
-};
-
-function convertToBytes32(dataArray: IMerkleNode[][]): string[][] {
-  return dataArray.map((subArray) =>
-    subArray.map((item) => {
-      // Convert the buffer data to a hexadecimal string without the '0x' prefix.
-      let hexString = item.data.toString('hex');
-
-      // Ensure the hex string is of length 64.
-      if (hexString.length < 64) {
-        hexString = hexString.padStart(64, '0'); // Using padStart to add zeros to the beginning, not the end.
-      } else if (hexString.length > 64) {
-        throw new Error('Data is too long for bytes32');
-      }
-
-      // Add '0x' prefix
-      return '0x' + hexString;
-    })
-  );
-}
 
 export function convertBufferArrayToBytes32(dataArray: Buffer[]): string[] {
   return dataArray.map((buffer) => {
