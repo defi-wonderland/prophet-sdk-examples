@@ -2,22 +2,21 @@ import { address } from '../constants';
 import { ProphetSDK } from '@defi-wonderland/prophet-sdk/dist';
 import { ContractRunner } from 'ethers-v6';
 import { getSigner } from '../helpers';
-import { getNetworkName } from '../utils';
 
 /**
- * Finalize Requests script
+ * Finalize Request script
  *
  * The goal of this script is to finalize te last request.
  *
  * Requirements:
- *  1. Run the Create Requests and the propose Responses scripts, setthe FINALIZE_SOON constant to true, so it can be finalized once the dispute period is over
+ *  1. Run the Create Request and the propose Response scripts, setthe FINALIZE_SOON constant to true, so it can be finalized once the dispute period is over
  */
 
 (async () => {
   const signer = (await getSigner()) as unknown as ContractRunner;
 
   // Instantiate the sdk with the oracle address
-  const sdk = new ProphetSDK(signer, address.deployed[getNetworkName()].ORACLE);
+  const sdk = new ProphetSDK(signer, address.deployed.ORACLE);
 
   // Get the last request
   const requestCount = Number(await sdk.helpers.totalRequestCount());

@@ -8,6 +8,7 @@ const ALCHEMY_ID = process.env.ALCHEMY_ID;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
 const config: HardhatUserConfig = {
+  defaultNetwork: 'tenderly',
   solidity: {
     version: '0.8.19',
   },

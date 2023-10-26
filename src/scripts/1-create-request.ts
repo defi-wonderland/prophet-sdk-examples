@@ -1,12 +1,11 @@
 import {
   getAccountingExtension,
-  getCurrentEpochInSeconds,
   getDecodeRequestDataFunctionReturnTypes,
   getERC20Tokens,
   getRandomDeadline,
   getSigner,
 } from '../helpers';
-import { BOND_SIZE, FINALIZE_SOON, address } from '../constants';
+import { BOND_SIZE, address } from '../constants';
 import { Module, ProphetSDK } from '@defi-wonderland/prophet-sdk/dist';
 import { ModulesMap } from '@defi-wonderland/prophet-sdk/dist/types/Module';
 import IHttpRequestModule from '@defi-wonderland/prophet-modules-abi/abi/IHttpRequestModule.json';
@@ -22,14 +21,14 @@ import { ContractRunner } from 'ethers-v6';
 import { getNetworkName } from '../utils';
 
 /**
- * Create Requests script
+ * Create Request script
  *
  * The goal of this script is to create a request using the sdk
  *
  * Requirements:
  *  1. Deploy the Prophet modules you want to use to your preferred fork
  *  2. Update the addresses of the oracle and the modules in `constants.ts`
- *  3. Fund the requester wallet with the token you want to use, in this case we use USDT
+ *  3. Fund the requester wallet 
  *  4. Approve the modules running the `approve-modules.ts` script (only needed once)
  */
 (async () => {
@@ -41,78 +40,77 @@ import { getNetworkName } from '../utils';
 
   // The modules are defined to be used in the sdk as known modules
   const httpRequestModule = {
-    module: new Module(address.deployed[getNetworkName()].HTTP_REQUEST_MODULE, IHttpRequestModule.abi, runner),
+    module: new Module(address.deployed.HTTP_REQUEST_MODULE, IHttpRequestModule.abi, runner),
     abi: IHttpRequestModule.abi,
   };
 
-  const bondedResponseModule = new Module(
-    address.deployed[getNetworkName()].BONDED_RESPONSE_MODULE,
-    IBondedResponseModule.abi,
-    runner
-  );
+  const bondedResponseModule = new Module(address.deployed.BONDED_RESPONSE_MODULE, IBondedResponseModule.abi, runner);
 
   const bondedDisputeModule = {
-    module: new Module(address.deployed[getNetworkName()].BONDED_DISPUTE_MODULE, IBondedDisputeModule.abi, runner),
+    module: new Module(address.deployed.BONDED_DISPUTE_MODULE, IBondedDisputeModule.abi, runner),
     abi: IBondedDisputeModule.abi,
   };
 
   const arbitratorModule = {
-    module: new Module(address.deployed[getNetworkName()].ARBITRATOR_MODULE, IArbitratorModule.abi, runner),
+    module: new Module(address.deployed.ARBITRATOR_MODULE, IArbitratorModule.abi, runner),
     abi: IArbitratorModule.abi,
   };
 
   const callbackModule = {
-    module: new Module(address.deployed[getNetworkName()].CALLBACK_MODULE, ICallbackModule.abi, runner),
+    module: new Module(address.deployed.CALLBACK_MODULE, ICallbackModule.abi, runner),
     abi: ICallbackModule.abi,
   };
 
   const knownModules: ModulesMap = {
     [httpRequestModule.module.moduleAddress]: httpRequestModule.module,
-    [address.deployed[getNetworkName()].BONDED_RESPONSE_MODULE]: bondedResponseModule,
+    [address.deployed.BONDED_RESPONSE_MODULE]: bondedResponseModule,
     [bondedDisputeModule.module.moduleAddress]: bondedDisputeModule.module,
     [arbitratorModule.module.moduleAddress]: arbitratorModule.module,
     [callbackModule.module.moduleAddress]: callbackModule.module,
   };
 
   // The sdk is initialized with the runner, the oracle address and the known modules
-  const sdk = new ProphetSDK(runner, address.deployed[getNetworkName()].ORACLE, knownModules);
+  const sdk = new ProphetSDK(runner, address.deployed.ORACLE, knownModules);
 
   // usdt is going to be used as the bond token
   const { usdt } = await getERC20Tokens();
+  const tokenAddress = await usdt.getAddress();
 
   const accountingExtension = await getAccountingExtension();
-
-  const deadline = FINALIZE_SOON ? getCurrentEpochInSeconds() + 30 : getRandomDeadline();
+  const accountingExtensionAddress = await accountingExtension.getAddress();
+  const deadline = getRandomDeadline();
 
   // Define the data to be sent for each module
   const requestModuleData = Object.values({
-    url: 'https://defi.sucks/',
-    body: 'test body',
-    method: 0,
-    accountingExtension: address.deployed[getNetworkName()].ACCOUNTING_EXTENSION,
-    paymentToken: await usdt.getAddress(),
+    url: 'https://jsonplaceholder.typicode.com/comments',
+    body: 'postId=1',
+    method: 0, // GET, see HttpRequestModule
+    accountingExtension: address.deployed.ACCOUNTING_EXTENSION,
+    paymentToken: tokenAddress,
     paymentAmount: BOND_SIZE,
   });
 
   const responseModuleData = Object.values({
-    accountingExtension: address.deployed[getNetworkName()].ACCOUNTING_EXTENSION,
-    bondToken: await usdt.getAddress(),
+    accountingExtension: address.deployed.ACCOUNTING_EXTENSION,
+    bondToken: tokenAddress,
     bondSize: BOND_SIZE,
     deadline: deadline,
     disputeWindow: 5000,
   });
 
   const disputeModuleData = Object.values({
-    accountingExtension: address.deployed[getNetworkName()].ACCOUNTING_EXTENSION,
-    bondToken: await usdt.getAddress(),
+    accountingExtension: address.deployed.ACCOUNTING_EXTENSION,
+    bondToken: tokenAddress,
     bondSize: BOND_SIZE,
   });
 
   const resolutionModuleData = [address.wallets.ARBITRATOR];
 
+  accountingExtension.interface.encodeFunctionData('revokeModule', [address.deployed.CALLBACK_MODULE]); // drops the finality module
+
   const finalityModuleData = Object.values({
-    target: address.opUniv3Pools[getNetworkName()][0],
-    data: '0x1a686502', // liquidity() selector
+    target: address.deployed.ACCOUNTING_EXTENSION,
+    data: accountingExtension.interface.encodeFunctionData('revokeModule', [address.deployed.CALLBACK_MODULE]), // drops the finality module
   });
 
   // Create the new request object
@@ -138,11 +136,11 @@ import { getNetworkName } from '../utils';
       [finalityModuleData]
     ),
     ipfsHash: '0', // null hash because we are going to create a request without the metadata deployed yet and the sdk will deploy it for us
-    requestModule: address.deployed[getNetworkName()].HTTP_REQUEST_MODULE,
-    responseModule: address.deployed[getNetworkName()].BONDED_RESPONSE_MODULE,
-    disputeModule: address.deployed[getNetworkName()].BONDED_DISPUTE_MODULE,
-    resolutionModule: address.deployed[getNetworkName()].ARBITRATOR_MODULE,
-    finalityModule: address.deployed[getNetworkName()].CALLBACK_MODULE,
+    requestModule: address.deployed.HTTP_REQUEST_MODULE,
+    responseModule: address.deployed.BONDED_RESPONSE_MODULE,
+    disputeModule: address.deployed.BONDED_DISPUTE_MODULE,
+    resolutionModule: address.deployed.ARBITRATOR_MODULE,
+    finalityModule: address.deployed.CALLBACK_MODULE,
   };
 
   console.log('New request to be created: ', newRequest);
@@ -157,9 +155,9 @@ import { getNetworkName } from '../utils';
   };
 
   // Approve the accounting extension to spend the expected reward
-  console.log(await usdt.connect(runner)['approve'](await accountingExtension.getAddress(), reward));
+  console.log(await usdt.connect(runner)['approve'](accountingExtensionAddress, reward));
   // Deposit the expected reward into the accounting extension
-  console.log(await accountingExtension.connect(runner)['deposit'](await usdt.getAddress(), reward));
+  console.log(await accountingExtension.connect(runner)['deposit'](tokenAddress, reward));
 
   // Create the request
   const result = await sdk.helpers.createRequest(newRequest, metadata);

@@ -8,16 +8,16 @@ Set up the `RPC_URL` in the `.env` file, make sure the addresses in the `constan
 
 ```bash
 # Create requests with random modules and parameters
-yarn scripts:create-requests ${NETWORK}
+yarn scripts:create-request
 
 # Propose responses for the last 3 requests
-yarn scripts:propose-responses ${NETWORK}
+yarn scripts:propose-response
 
 # Dispute the last 3 responses
-yarn scripts:dispute-responses ${NETWORK}
+yarn scripts:dispute-response
 
 # Finalize the last 3 requests
-yarn scripts:finalize-requests ${NETWORK}
+yarn scripts:finalize-request
 ```
 
 ## Contributors

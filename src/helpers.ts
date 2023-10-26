@@ -91,11 +91,7 @@ export function convertBufferArrayToBytes32(dataArray: Buffer[]): string[] {
 
 export const getAccountingExtension = async () => {
   const runner = (await getSigner()) as unknown as ContractRunner;
-  const accountingExtension = new Contract(
-    address.deployed[getNetworkName()].ACCOUNTING_EXTENSION,
-    IAccountingExtension.abi,
-    runner
-  );
+  const accountingExtension = new Contract(address.deployed.ACCOUNTING_EXTENSION, IAccountingExtension.abi, runner);
 
   return accountingExtension;
 };
@@ -122,9 +118,9 @@ export const getTokenContract = async (tokenAddress: string) => {
 export const getERC20Tokens = async () => {
   const runner = (await getSigner()) as unknown as ContractRunner;
 
-  const weth = new Contract(address.erc20[getNetworkName()].WETH, IERC20_ABI, runner);
-  const usdc = new Contract(address.erc20[getNetworkName()].USDC, IERC20_ABI, runner);
-  const usdt = new Contract(address.erc20[getNetworkName()].USDT, IERC20_ABI, runner);
+  const weth = new Contract(address.erc20.WETH, IERC20_ABI, runner);
+  const usdc = new Contract(address.erc20.USDC, IERC20_ABI, runner);
+  const usdt = new Contract(address.erc20.USDT, IERC20_ABI, runner);
 
   return {
     usdc,
