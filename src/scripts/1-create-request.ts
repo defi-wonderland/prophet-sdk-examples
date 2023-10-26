@@ -50,7 +50,7 @@ import { RequestData } from '@defi-wonderland/prophet-sdk/dist/types/types';
 
   // Set the data for the new request
   const newRequest: RequestData = {
-    requestModuleData: {
+    requestObject: {
       url: 'https://jsonplaceholder.typicode.com/comments',
       body: 'postId=1',
       method: 0, // GET, see HttpRequestModule
@@ -58,28 +58,28 @@ import { RequestData } from '@defi-wonderland/prophet-sdk/dist/types/types';
       paymentToken: tokenAddress,
       paymentAmount: BOND_SIZE,
     },
-    responseModuleData: {
+    responseObject: {
       accountingExtension: address.deployed.ACCOUNTING_EXTENSION,
       bondToken: tokenAddress,
       bondSize: BOND_SIZE,
       deadline: deadline,
       disputeWindow: 5000,
     },
-    disputeModuleData: {
+    disputeObject: {
       accountingExtension: address.deployed.ACCOUNTING_EXTENSION,
       bondToken: tokenAddress,
       bondSize: BOND_SIZE,
     },
-    resolutionModuleData: address.wallets.ARBITRATOR,
-    finalityModuleData: {
+    resolutionObject: address.wallets.ARBITRATOR,
+    finalityObject: {
       target: address.deployed.ACCOUNTING_EXTENSION,
       data: accountingExtension.interface.encodeFunctionData('revokeModule', [address.deployed.CALLBACK_MODULE]), // drops the finality module
     },
-    requestModule: address.deployed.HTTP_REQUEST_MODULE,
-    responseModule: address.deployed.BONDED_RESPONSE_MODULE,
-    disputeModule: address.deployed.BONDED_DISPUTE_MODULE,
-    resolutionModule: address.deployed.ARBITRATOR_MODULE,
-    finalityModule: address.deployed.CALLBACK_MODULE,
+    requestModuleAddress: address.deployed.HTTP_REQUEST_MODULE,
+    responseModuleAddress: address.deployed.BONDED_RESPONSE_MODULE,
+    disputeModuleAddress: address.deployed.BONDED_DISPUTE_MODULE,
+    resolutionModuleAddress: address.deployed.ARBITRATOR_MODULE,
+    finalityModuleAddress: address.deployed.CALLBACK_MODULE,
   };
 
   console.log('New request to be created: ', newRequest);
