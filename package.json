@@ -45,8 +45,8 @@
     "prophet-sdk/ethers": "6.7.0"
   },
   "dependencies": {
-    "@defi-wonderland/prophet-modules-abi": "0.0.0-172c4052",
-    "@defi-wonderland/prophet-sdk": "0.0.0-b50ca7ba",
+    "@defi-wonderland/prophet-modules-abi": "0.0.0-bc50a2b6",
+    "@defi-wonderland/prophet-sdk": "0.0.0-ab5e3bdd",
     "@openzeppelin/contracts": "4.7.3",
     "bignumber.js": "9.1.0",
     "ethers-v6": "npm:ethers@6.7.0",
